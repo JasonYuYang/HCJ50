@@ -18,19 +18,32 @@ const colors = {
 
 const main_types = Object.keys(colors);
 let pokeID = 1;
+
 const fetchPokemons = async (entries) => {
   let [entry] = entries;
+
   if (entry.isIntersecting) {
+    let pokemonPromises = [];
     for (let i = 0; i < 18; i++) {
       const url = `https://pokeapi.co/api/v2/pokemon/${pokeID}`;
-      const res = await fetch(url);
-      const data = await res.json();
+      pokemonPromises.push(fetch(url).then((res) => res.json()));
       pokeID++;
-      createPokemonCard(data);
+    }
+    const data = await Promise.all(pokemonPromises);
+    for (let j = 0; j < data.length; j++) {
+      createPokemonCard(data[j]);
     }
   }
 };
 
+const pokeDetective = document.getElementById('poke-detective');
+const detectiveOption = {
+  root: null,
+  threshold: [0],
+  marginRoot: '0px',
+};
+let pokeObserver = new IntersectionObserver(fetchPokemons, detectiveOption);
+pokeObserver.observe(pokeDetective);
 const createPokemonCard = (pokemon) => {
   const pokemonEl = document.createElement('div');
   pokemonEl.classList.add('pokemon');
@@ -59,12 +72,3 @@ const createPokemonCard = (pokemon) => {
 
   poke_container.appendChild(pokemonEl);
 };
-
-const pokeDetective = document.getElementById('poke-detective');
-const detectiveOption = {
-  root: null,
-  threshold: [0],
-  marginRoot: '0px',
-};
-let pokeObserver = new IntersectionObserver(fetchPokemons, detectiveOption);
-pokeObserver.observe(pokeDetective);
